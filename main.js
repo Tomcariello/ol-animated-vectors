@@ -18,7 +18,7 @@ const predefinedStyles = {
   'icons': {
     symbol: {
       symbolType: 'image',
-      src: 'data/icon.png',
+      src: 'data/img/icon.png',
       size: [18, 28],
       color: 'lightyellow',
       rotateWithView: false,
@@ -165,10 +165,12 @@ const map = new Map({
   }),
 });
 
+// Original code
 let pointsLayer = new WebGLPointsLayer({
   source: vectorSource,
-  style: vectorStyle,
+  style: vectorStyle, // This is one of the 5 pre-set styles to use in this example
 });
+
 map.addLayer(pointsLayer);
 
 // animate the map
