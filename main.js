@@ -6,12 +6,14 @@ import Vector from 'ol/source/Vector';
 import View from 'ol/View';
 import WebGLPointsLayer from 'ol/layer/WebGLPoints';
 
+// Initialize a GeoJSON vector source
 const vectorSource = new Vector({
   url: 'data/geojson/world-cities.geojson',
   format: new GeoJSON(),
   wrapX: true,
 });
 
+// Various styles that can be used with this data
 const predefinedStyles = {
   'icons': {
     symbol: {
@@ -146,6 +148,10 @@ const predefinedStyles = {
   },
 };
 
+// select the style to use
+const vectorStyle = predefinedStyles['rotating-bars'];
+
+// Instantiate the map
 const map = new Map({
   layers: [
     new TileLayer({
@@ -159,81 +165,16 @@ const map = new Map({
   }),
 });
 
-let literalStyle;
-let pointsLayer;
-
-let selected = null;
-
-map.on('pointermove', function (ev) {
-  if (selected !== null) {
-    selected.set('hover', 0);
-    selected = null;
-  }
-
-  map.forEachFeatureAtPixel(ev.pixel, function (feature) {
-    feature.set('hover', 1);
-    selected = feature;
-    return true;
-  });
+let pointsLayer = new WebGLPointsLayer({
+  source: vectorSource,
+  style: vectorStyle,
 });
-
-function refreshLayer(newStyle) {
-  const previousLayer = pointsLayer;
-  pointsLayer = new WebGLPointsLayer({
-    source: vectorSource,
-    style: newStyle,
-  });
-  map.addLayer(pointsLayer);
-
-  if (previousLayer) {
-    map.removeLayer(previousLayer);
-    previousLayer.dispose();
-  }
-  literalStyle = newStyle;
-}
-
-const spanValid = document.getElementById('style-valid');
-const spanInvalid = document.getElementById('style-invalid');
-function setStyleStatus(errorMsg) {
-  const isError = typeof errorMsg === 'string';
-  spanValid.style.display = errorMsg === null ? 'initial' : 'none';
-  spanInvalid.firstElementChild.innerText = isError ? errorMsg : '';
-  spanInvalid.style.display = isError ? 'initial' : 'none';
-}
-
-const editor = document.getElementById('style-editor');
-editor.addEventListener('input', function () {
-  const textStyle = editor.value;
-  try {
-    const newLiteralStyle = JSON.parse(textStyle);
-    if (JSON.stringify(newLiteralStyle) !== JSON.stringify(literalStyle)) {
-      refreshLayer(newLiteralStyle);
-    }
-    setStyleStatus(null);
-  } catch (e) {
-    setStyleStatus(e.message);
-  }
-});
-
-const select = document.getElementById('style-select');
-select.value = 'circles';
-function onSelectChange() {
-  const style = select.value;
-  const newLiteralStyle = predefinedStyles[style];
-  editor.value = JSON.stringify(newLiteralStyle, null, 2);
-  try {
-    refreshLayer(newLiteralStyle);
-    setStyleStatus();
-  } catch (e) {
-    setStyleStatus(e.message);
-  }
-}
-onSelectChange();
-select.addEventListener('change', onSelectChange);
+map.addLayer(pointsLayer);
 
 // animate the map
 function animate() {
   map.render();
   window.requestAnimationFrame(animate);
 }
+
 animate();

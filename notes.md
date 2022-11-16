@@ -1,4 +1,4 @@
-Based on https://openlayers.org/en/latest/examples/wind-arrows.html
+Based on https://openlayers.org/en/latest/examples/webgl-points-layer.html
 
 https://gitter.im/openlayers/openlayers?utm_source=notification&utm_medium=email&utm_campaign=unread-notifications#
 
