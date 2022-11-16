@@ -8,7 +8,8 @@ import WebGLPointsLayer from 'ol/layer/WebGLPoints';
 
 // Initialize a GeoJSON vector source
 const vectorSource = new Vector({
-  url: 'data/geojson/world-cities.geojson',
+  // url: 'data/geojson/world-cities.geojson',
+  url: 'data/geojson/spread_weather.json',
   format: new GeoJSON(),
   wrapX: true,
 });
