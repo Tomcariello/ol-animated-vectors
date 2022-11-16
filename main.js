@@ -5,8 +5,24 @@ import TileLayer from 'ol/layer/Tile';
 import Vector from 'ol/source/Vector';
 import View from 'ol/View';
 import WebGLPointsLayer from 'ol/layer/WebGLPoints';
+import WebGLTileLayer from 'ol/layer/WebGLTile';
+import DataTileSource from 'ol/source/DataTile';
 
-// Initialize a GeoJSON vector source
+// Instantiate the map
+const map = new Map({
+  layers: [
+    new TileLayer({
+      source: new OSM(),
+    }),
+  ],
+  target: document.getElementById('map'),
+  view: new View({
+    center: [0, 0],
+    zoom: 2,
+  }),
+});
+
+// Specify the GeoJSON vector source
 const vectorSource = new Vector({
   // url: 'data/geojson/world-cities.geojson',
   url: 'data/geojson/spread_weather.json',
@@ -14,7 +30,7 @@ const vectorSource = new Vector({
   wrapX: true,
 });
 
-// Various styles that can be used with this data
+// Various styles for use rendering the data
 const predefinedStyles = {
   'icons': {
     symbol: {
@@ -149,29 +165,16 @@ const predefinedStyles = {
   },
 };
 
-// select the style to use
+// select the style you want to use
 const vectorStyle = predefinedStyles['rotating-bars'];
 
-// Instantiate the map
-const map = new Map({
-  layers: [
-    new TileLayer({
-      source: new OSM(),
-    }),
-  ],
-  target: document.getElementById('map'),
-  view: new View({
-    center: [0, 0],
-    zoom: 2,
-  }),
-});
-
-// Original code
+// Instantiate & provide values for WebGLPointsLayer
 let pointsLayer = new WebGLPointsLayer({
   source: vectorSource,
-  style: vectorStyle, // This is one of the 5 pre-set styles to use in this example
+  style: vectorStyle,
 });
 
+// Add the webGL points layer to the map
 map.addLayer(pointsLayer);
 
 // animate the map
