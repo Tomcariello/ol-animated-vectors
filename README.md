@@ -10,13 +10,9 @@ My goal for this project is to develop the ability to render **WIND AND OCEAN CU
 # Data in this repo
 - /data//weather.json: This is randomly generated data which covers covers the globe. Each entry includes lat/lon coordinates as well as wind speed & wind degree (direction).
     
-{
-
     "coord": { "lat": -58, "lon": 87 },
 
     "wind": { "speed": 29.47, "deg": 214 }
-    
-}
 
 # Intended Roadmap
 [X] Clone webgl-points-layer example & reduce to the basics
