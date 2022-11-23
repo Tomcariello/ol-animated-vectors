@@ -1,186 +1,75 @@
-import GeoJSON from 'ol/format/GeoJSON';
-import Map from 'ol/Map';
-import OSM from 'ol/source/OSM';
-import TileLayer from 'ol/layer/Tile';
-import Vector from 'ol/source/Vector';
-import View from 'ol/View';
-import WebGLPointsLayer from 'ol/layer/WebGLPoints';
-import WebGLTileLayer from 'ol/layer/WebGLTile';
-import DataTileSource from 'ol/source/DataTile';
+import Feature from "ol/Feature";
+import Map from "ol/Map";
+import Point from "ol/geom/Point";
+import VectorSource from "ol/source/Vector";
+import Tile from "ol/layer/Tile";
+import View from "ol/View";
+import OSM from "ol/source/OSM";
+import { fromLonLat } from "ol/proj";
+import WebGLPointsLayer from "ol/layer/WebGLPoints";
 
-// Instantiate the map
-const map = new Map({
-  layers: [
-    new TileLayer({
-      source: new OSM(),
-    }),
-  ],
-  target: document.getElementById('map'),
-  view: new View({
-    center: [0, 0],
-    zoom: 2,
-  }),
-});
+// An array to contain all of the features from the dataset after processing
+const featuresArr = [];
 
-// Specify the GeoJSON vector source
-const vectorSource = new Vector({
-  // url: 'data/geojson/world-cities.geojson',
-  url: 'data/geojson/spread_weather.json',
-  format: new GeoJSON(),
-  wrapX: true,
-});
+// Fetch data, convert to JSON, then processData()
+fetch("data/weather.json")
+  .then(function (resData) {
+    return resData.json();
+  })
+  .then(function (resDataJSON) {
+    processData(resDataJSON);
 
-// Various styles for use rendering the data
-const predefinedStyles = {
-  'icons': {
-    symbol: {
-      symbolType: 'image',
-      src: 'data/img/icon.png',
-      size: [18, 28],
-      color: 'lightyellow',
-      rotateWithView: false,
-      offset: [0, 9],
-    },
-  },
-  'triangles': {
-    symbol: {
-      symbolType: 'triangle',
-      size: 18,
-      color: [
-        'interpolate',
-        ['linear'],
-        ['get', 'population'],
-        20000,
-        '#5aca5b',
-        300000,
-        '#ff6a19',
-      ],
-      rotateWithView: true,
-    },
-  },
-  'triangles-latitude': {
-    symbol: {
-      symbolType: 'triangle',
-      size: [
-        'interpolate',
-        ['linear'],
-        ['get', 'population'],
-        40000,
-        12,
-        2000000,
-        24,
-      ],
-      color: [
-        'interpolate',
-        ['linear'],
-        ['get', 'latitude'],
-        -60,
-        '#ff14c3',
-        -20,
-        '#ff621d',
-        20,
-        '#ffed02',
-        60,
-        '#00ff67',
-      ],
-      offset: [0, 0],
-      opacity: 0.95,
-    },
-  },
-  'circles': {
-    symbol: {
-      symbolType: 'circle',
-      size: [
-        'interpolate',
-        ['linear'],
-        ['get', 'population'],
-        40000,
-        8,
-        2000000,
-        28,
-      ],
-      color: ['match', ['get', 'hover'], 1, '#ff3f3f', '#006688'],
-      rotateWithView: false,
-      offset: [0, 0],
-      opacity: [
-        'interpolate',
-        ['linear'],
-        ['get', 'population'],
-        40000,
-        0.6,
-        2000000,
-        0.92,
-      ],
-    },
-  },
-  'circles-zoom': {
-    symbol: {
-      symbolType: 'circle',
-      size: ['interpolate', ['exponential', 2.5], ['zoom'], 2, 1, 14, 32],
-      color: ['match', ['get', 'hover'], 1, '#ff3f3f', '#006688'],
-      offset: [0, 0],
-      opacity: 0.95,
-    },
-  },
-  'rotating-bars': {
-    symbol: {
-      symbolType: 'square',
-      rotation: ['*', ['time'], 0.1],
-      size: [
-        'array',
-        4,
-        [
-          'interpolate',
-          ['linear'],
-          ['get', 'population'],
-          20000,
-          4,
-          300000,
-          28,
-        ],
-      ],
-      color: [
-        'interpolate',
-        ['linear'],
-        ['get', 'population'],
-        20000,
-        '#ffdc00',
-        300000,
-        '#ff5b19',
-      ],
-      offset: [
-        'array',
-        0,
-        [
-          'interpolate',
-          ['linear'],
-          ['get', 'population'],
-          20000,
-          2,
-          300000,
-          14,
-        ],
-      ],
-    },
-  },
-};
+    // Initialize the map
+    const map = new Map({
+      layers: [
+        new Tile({ source: new OSM() }),
+        new WebGLPointsLayer({
+          source: new VectorSource({ features: featuresArr }),
 
-// select the style you want to use
-const vectorStyle = predefinedStyles['rotating-bars'];
+          style: {
+            symbol: {
+              symbolType: "triangle",
+              size: [
+                "array",
+                ["*", ["get", "speed"], 0.3], // speed * 0.4 --> width (triangle base)
+                ["*", ["get", "speed"], 0.8], // speed * 0.8 --> height (triangle peak)
+              ],
+              color: [
+                "case",
+                [">", ["get", "speed"], 40], // if speed over 40 --> red
+                "red",
+                [">", ["get", "speed"], 20], // if speed over 20 --> blue
+                "blue",
+                "green", // if speed <= 20 --> green
+              ],
+              rotation: ["*", ["get", "deg"], Math.PI / 180],
+              rotateWithView: true,
+            },
+          },
+        }),
+      ],
+      target: "map",
+      view: new View({
+        center: [0, 0],
+        zoom: 4,
+      }),
+    });
+  });
+function processData(data) {
+  const weatherData = data.list;
+  // Process data
+  for (let i = 0; i < weatherData.length; ++i) {
+    // Extract coordinates & wind values
+    const { coord, wind } = weatherData[i];
 
-// Instantiate & provide values for WebGLPointsLayer
-let pointsLayer = new WebGLPointsLayer({
-  source: vectorSource,
-  style: vectorStyle,
-});
+    // Convert from lon/lat to floats using the provided OL method
+    const coordinates = fromLonLat([coord.lon, coord.lat]);
 
-// Add the webGL points layer to the map
-map.addLayer(pointsLayer);
+    // Create this feature & add wind properties
+    const feature = new Feature(new Point(coordinates));
+    feature.setProperties(wind);
 
-// animate the map
-function animate() {
-  map.render();
-  window.requestAnimationFrame(animate);
+    // Push feature to the array
+    featuresArr[i] = feature;
+  }
 }
-
-animate();

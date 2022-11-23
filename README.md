@@ -10,7 +10,7 @@ I will try to remain active on the OpenLayers gitter (https://gitter.im/openlaye
 - npm start
 
 # Data in this repo
-- /data/geoJSON/world-cities.geoJSON: taken from the webgl-points-layer demo mentioned above
+- /data/geoJSON/world-cities.geoJSON: taken from the webgl-points-layer demo mentioned above.
 
 - /data/geoJSON/spread-weather.json: this is derivative of weather.json, but the lats/lons have been randomized to spread them across the globe. This has also been converted to geoJSON format.
 
